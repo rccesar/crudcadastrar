@@ -7,60 +7,131 @@ function App() {
 
   const tarefa = {
     codigo: 0,
-    tarefa:'',
-    status:''
+    tarefa: '',
+    status: ''
 
   }
 
-  const[btnCadastrar,setBtncadastrar] = useState(true);
-  const[tarefas,setTarefas] = useState([]);
-  const [objTarefa,setObjTarefa] = useState(tarefa);
+  const [btnCadastrar, setBtncadastrar] = useState(true);
+  const [tarefas, setTarefas] = useState([]);
+  const [objTarefa, setObjTarefa] = useState(tarefa);
 
-  useEffect(()=>{
+  useEffect(() => {
     fetch("http://localhost:8080/listar")
-    .then(retorno => retorno.json())
-    .then(retorno_convertido => setTarefas(retorno_convertido));
-  },[]);
+      .then(retorno => retorno.json())
+      .then(retorno_convertido => setTarefas(retorno_convertido));
+  }, []);
 
-  const digite = (e) =>{
+  const digite = (e) => {
     console.log(e.target);
-    setObjTarefa({...objTarefa,[e.target.name]:e.target.value});
+    setObjTarefa({ ...objTarefa, [e.target.name]: e.target.value });
   }
 
   const cadastrar = () => {
-    fetch("http://localhost:8080/cadastrar",{
-      method:'post',
-      body:JSON.stringify(objTarefa),
-      headers:{
-        'Content-type':'application/json',
-        'Accept':'application/json'
+    fetch("http://localhost:8080/cadastrar", {
+      method: 'post',
+      body: JSON.stringify(objTarefa),
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
       }
     })
-    .then(retorno => retorno.json())
-    .then(retorno_convertido => {
-      console.log(retorno_convertido);
+      .then(retorno => retorno.json())
+      .then(retorno_convertido => {
+        console.log(retorno_convertido);
 
-      if(retorno_convertido.mensagem !== undefined){
+        if (retorno_convertido.mensagem !== undefined) {
+          alert(retorno_convertido.mensagem);
+
+        } else {
+          setTarefas([...tarefas, retorno_convertido]);
+          alert('Tarefa Registrada')
+          limparFormulario()
+        }
+
+      })
+  }
+
+  const remover = () => {
+    fetch("http://localhost:8080/remover/" + objTarefa.codigo, {
+      method: 'delete',
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      }
+    })
+      .then(retorno => retorno.json())
+      .then(retorno_convertido => {
+        console.log(retorno_convertido);
+
         alert(retorno_convertido.mensagem);
 
-      }else{
-        setTarefas([...tarefas,retorno_convertido]);
-        alert('Tarefa Registrada')
-        limparFormulario()
+        let vetorTemp = [...tarefas];
+
+        let indice = vetorTemp.findIndex((p) => {
+          return p.codigo === objTarefa.codigo;
+        });
+
+        vetorTemp.splice(indice, 1);
+
+        setTarefas(vetorTemp);
+        limparFormulario();
+
+      })
+  }
+
+  const alterar = () => {
+    fetch("http://localhost:8080/alterar", {
+      method: 'put',
+      body: JSON.stringify(objTarefa),
+      headers: {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
       }
-
     })
+      .then(retorno => retorno.json())
+      .then(retorno_convertido => {
+        console.log(retorno_convertido);
+
+        if (retorno_convertido.mensagem !== undefined) {
+          alert(retorno_convertido.mensagem);
+
+        } else {
+          alert('Tarefa Atualizada')
+
+          let vetorTemp = [...tarefas];
+
+          let indice = vetorTemp.findIndex((p) => {
+            return p.codigo === objTarefa.codigo;
+          });
+
+          vetorTemp[indice] = objTarefa;
+
+          setTarefas(vetorTemp);
+
+          limparFormulario()
+        }
+
+      })
   }
 
-  const limparFormulario = () =>{
+
+  const limparFormulario = () => {
     setObjTarefa(tarefa);
+    setBtncadastrar(true);
 
   }
 
+  const selecionarTarefa = (indice) => {
+    setObjTarefa(tarefas[indice]);
+    setBtncadastrar(false);
+
+
+  }
   return (
     <div >
-      <Formulario botao={btnCadastrar} eventoDigite={digite} cadastrar={cadastrar} obj={objTarefa}></Formulario>
-      <Tabela vetor={tarefas}></Tabela>
+      <Formulario botao={btnCadastrar} eventoDigite={digite} cadastrar={cadastrar} obj={objTarefa} cancelar={limparFormulario} remover={remover} alterar={alterar}></Formulario>
+      <Tabela vetor={tarefas} selecionar={selecionarTarefa}></Tabela>
     </div>
   );
 }

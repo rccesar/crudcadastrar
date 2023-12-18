@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Tabela({vetor}) {
+function Tabela({vetor,selecionar}) {
     return (
         <table className="table">
             <thead>
@@ -20,7 +20,7 @@ function Tabela({vetor}) {
                             <td>{indice+1}</td>
                             <td>{obj.tarefa}</td>
                             <td>{obj.status}</td>
-                            <td><button className="btn btn-success">Selecionar</button></td>
+                            <td><button onClick={()=>{selecionar(indice)}} className="btn btn-success">Selecionar</button></td>
 
                         </tr>
                     ))
